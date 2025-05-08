@@ -1,50 +1,64 @@
 --[[
-    NoFilter Dead Rails GUI
-    Made with zero fucks, zero keys, and 100% chaotic sexy energy.
-    Includes: ESP, Fly Toggle, Auto Bond Collector, and Kill Aura
+    NoFilter Dead Rails GUI – DRAGGABLE & TOGGLEABLE EDITION
+    Clean, keyless, and now fucking mobile with your damn mouse.
 ]]
 
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+local Plr = game.Players.LocalPlayer
+local Char = Plr.Character or Plr.CharacterAdded:Wait()
+
 -- GUI Setup
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NoFilterHub"
-ScreenGui.Parent = game.CoreGui
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "NoFilterHub"
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 300, 0, 250)
-Frame.Position = UDim2.new(0.5, -150, 0.5, -125)
-Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Frame.BorderSizePixel = 0
-Frame.BackgroundTransparency = 0.05
-Frame.Parent = ScreenGui
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 250)
+frame.Position = UDim2.new(0.5, -150, 0.5, -125)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
 
-local UICorner = Instance.new("UICorner", Frame)
-UICorner.CornerRadius = UDim.new(0, 10)
+local uiCorner = Instance.new("UICorner", frame)
+uiCorner.CornerRadius = UDim.new(0, 10)
 
-local UIListLayout = Instance.new("UIListLayout", Frame)
-UIListLayout.Padding = UDim.new(0, 8)
-UIListLayout.FillDirection = Enum.FillDirection.Vertical
-UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+local layout = Instance.new("UIListLayout", frame)
+layout.Padding = UDim.new(0, 8)
+layout.FillDirection = Enum.FillDirection.Vertical
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.VerticalAlignment = Enum.VerticalAlignment.Top
 
 local title = Instance.new("TextLabel")
-title.Text = "🔥 NoFilter Dead Rails Hub"
+title.Text = "🔥 NoFilter Hub – Sexy & Dragable"
 title.TextColor3 = Color3.fromRGB(255, 85, 0)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
 title.Size = UDim2.new(1, 0, 0, 30)
-title.Parent = Frame
+title.Parent = frame
 
--- Toggle function
-local function makeButton(name, callback)
+-- Toggle GUI Visibility with RightShift
+local visible = true
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.RightShift and not gameProcessed then
+        visible = not visible
+        gui.Enabled = visible
+    end
+end)
+
+-- Button Maker
+local function makeButton(text, callback)
     local button = Instance.new("TextButton")
-    button.Text = name
+    button.Text = text
     button.Size = UDim2.new(0.9, 0, 0, 30)
-    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.Font = Enum.Font.Gotham
     button.TextSize = 14
-    button.Parent = Frame
+    button.AutoButtonColor = true
+    button.Parent = frame
 
     local corner = Instance.new("UICorner", button)
     corner.CornerRadius = UDim.new(0, 6)
@@ -52,44 +66,41 @@ local function makeButton(name, callback)
     button.MouseButton1Click:Connect(callback)
 end
 
--- ESP Function
-makeButton("👁️ ESP (Highlight Enemies)", function()
-    for _, v in pairs(game:GetService("Workspace"):GetChildren()) do
-        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v ~= game.Players.LocalPlayer.Character then
+-- ESP
+makeButton("👁️ ESP", function()
+    for _, v in pairs(workspace:GetChildren()) do
+        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v ~= Char then
             if not v:FindFirstChild("Highlight") then
-                local highlight = Instance.new("Highlight", v)
-                highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                local hl = Instance.new("Highlight", v)
+                hl.FillColor = Color3.fromRGB(255, 0, 0)
+                hl.OutlineColor = Color3.fromRGB(255, 255, 255)
             end
         end
     end
 end)
 
--- Fly Toggle
+-- Fly
 local flying = false
-makeButton("🚀 Toggle Fly [F Key]", function()
+makeButton("🚀 Toggle Fly (F)", function()
     flying = not flying
 end)
 
-game:GetService("RunService").RenderStepped:Connect(function()
-    if flying then
-        local char = game.Players.LocalPlayer.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            char:TranslateBy(Vector3.new(0, 2, 0))
-        end
+RS.RenderStepped:Connect(function()
+    if flying and Char and Char:FindFirstChild("HumanoidRootPart") then
+        Char:TranslateBy(Vector3.new(0, 2, 0))
     end
 end)
 
--- Auto Collect Bonds
+-- Auto Bond Grabber
 local autoFarm = false
-makeButton("💸 Auto Collect Bonds", function()
+makeButton("💸 Toggle Auto Bond Grab", function()
     autoFarm = not autoFarm
     while autoFarm do
         for _, v in pairs(workspace:GetDescendants()) do
             if v:IsA("TouchTransmitter") and v.Parent:FindFirstChild("TouchInterest") then
                 pcall(function()
-                    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Parent, 0)
-                    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Parent, 1)
+                    firetouchinterest(Char.HumanoidRootPart, v.Parent, 0)
+                    firetouchinterest(Char.HumanoidRootPart, v.Parent, 1)
                 end)
             end
         end
@@ -98,25 +109,23 @@ makeButton("💸 Auto Collect Bonds", function()
 end)
 
 -- Kill Aura
-local killAura = false
-makeButton("💀 Kill Aura", function()
-    killAura = not killAura
+local aura = false
+makeButton("💀 Toggle Kill Aura", function()
+    aura = not aura
 end)
 
-game:GetService("RunService").Heartbeat:Connect(function()
-    if killAura then
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") then
-                local enemy = player.Character
-                if (enemy.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 15 then
-                    local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                    if tool then
-                        tool:Activate()
-                    end
+RS.Heartbeat:Connect(function()
+    if aura then
+        for _, pl in pairs(game.Players:GetPlayers()) do
+            if pl ~= Plr and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
+                local dist = (pl.Character.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Magnitude
+                if dist <= 15 then
+                    local tool = Char:FindFirstChildOfClass("Tool")
+                    if tool then tool:Activate() end
                 end
             end
         end
     end
 end)
 
-print("NoFilter GUI loaded and ready to fucking ruin Dead Rails.")
+print("🔥 Loaded: NoFilter Dead Rails GUI with drag, toggle, and enough filth to crash your ethics.")
