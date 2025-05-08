@@ -1,131 +1,224 @@
---[[
-    NoFilter Dead Rails GUI – DRAGGABLE & TOGGLEABLE EDITION
-    Clean, keyless, and now fucking mobile with your damn mouse.
-]]
+--[[🔥 DEADRAILS ULTIMATE MOD MENU 🔥]]--
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
+local camera = workspace.CurrentCamera
 
-local UIS = game:GetService("UserInputService")
-local RS = game:GetService("RunService")
-local Plr = game.Players.LocalPlayer
-local Char = Plr.Character or Plr.CharacterAdded:Wait()
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "DeadRailsGodMenu"
 
--- GUI Setup
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "NoFilterHub"
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 250, 0, 600)
+MainFrame.Position = UDim2.new(0.03, 0, 0.25, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 250)
-frame.Position = UDim2.new(0.5, -150, 0.5, -125)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-frame.Parent = gui
-
-local uiCorner = Instance.new("UICorner", frame)
-uiCorner.CornerRadius = UDim.new(0, 10)
-
-local layout = Instance.new("UIListLayout", frame)
-layout.Padding = UDim.new(0, 8)
-layout.FillDirection = Enum.FillDirection.Vertical
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-layout.VerticalAlignment = Enum.VerticalAlignment.Top
-
-local title = Instance.new("TextLabel")
-title.Text = "🔥 NoFilter Hub – Sexy & Dragable"
-title.TextColor3 = Color3.fromRGB(255, 85, 0)
-title.BackgroundTransparency = 1
-title.Font = Enum.Font.GothamBold
-title.TextSize = 18
-title.Size = UDim2.new(1, 0, 0, 30)
-title.Parent = frame
-
--- Toggle GUI Visibility with RightShift
-local visible = true
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.RightShift and not gameProcessed then
-        visible = not visible
-        gui.Enabled = visible
-    end
-end)
-
--- Button Maker
-local function makeButton(text, callback)
-    local button = Instance.new("TextButton")
-    button.Text = text
-    button.Size = UDim2.new(0.9, 0, 0, 30)
-    button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.Gotham
-    button.TextSize = 14
-    button.AutoButtonColor = true
-    button.Parent = frame
-
-    local corner = Instance.new("UICorner", button)
-    corner.CornerRadius = UDim.new(0, 6)
-
-    button.MouseButton1Click:Connect(callback)
+local function createButton(name, y, func)
+	local btn = Instance.new("TextButton", MainFrame)
+	btn.Size = UDim2.new(1, -10, 0, 40)
+	btn.Position = UDim2.new(0, 5, 0, y)
+	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 16
+	btn.Text = name
+	btn.MouseButton1Click:Connect(func)
 end
 
+-- Features
+local espEnabled, itemEspEnabled, flyEnabled, infJumpEnabled, noclipEnabled, silentAimEnabled, killAuraEnabled = false, false, false, false, false, false, false
+
 -- ESP
-makeButton("👁️ ESP", function()
-    for _, v in pairs(workspace:GetChildren()) do
-        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v ~= Char then
-            if not v:FindFirstChild("Highlight") then
-                local hl = Instance.new("Highlight", v)
-                hl.FillColor = Color3.fromRGB(255, 0, 0)
-                hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-            end
-        end
-    end
-end)
+local function toggleESP()
+	espEnabled = not espEnabled
+	for _, v in pairs(game.Players:GetPlayers()) do
+		if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+			if espEnabled then
+				local billboard = Instance.new("BillboardGui", v.Character.HumanoidRootPart)
+				billboard.Name = "ESPTag"
+				billboard.Size = UDim2.new(0, 100, 0, 40)
+				billboard.AlwaysOnTop = true
+				local tag = Instance.new("TextLabel", billboard)
+				tag.Size = UDim2.new(1, 0, 1, 0)
+				tag.BackgroundTransparency = 1
+				tag.Text = v.Name
+				tag.TextColor3 = Color3.fromRGB(255, 0, 255)
+				tag.TextScaled = true
+			else
+				if v.Character.HumanoidRootPart:FindFirstChild("ESPTag") then
+					v.Character.HumanoidRootPart.ESPTag:Destroy()
+				end
+			end
+		end
+	end
+end
+
+-- Speed / Jump
+local function speedBoost() humanoid.WalkSpeed = 60 end
+local function jumpBoost() humanoid.JumpPower = 120 end
 
 -- Fly
-local flying = false
-makeButton("🚀 Toggle Fly (F)", function()
-    flying = not flying
-end)
-
-RS.RenderStepped:Connect(function()
-    if flying and Char and Char:FindFirstChild("HumanoidRootPart") then
-        Char:TranslateBy(Vector3.new(0, 2, 0))
-    end
-end)
-
--- Auto Bond Grabber
-local autoFarm = false
-makeButton("💸 Toggle Auto Bond Grab", function()
-    autoFarm = not autoFarm
-    while autoFarm do
-        for _, v in pairs(workspace:GetDescendants()) do
-            if v:IsA("TouchTransmitter") and v.Parent:FindFirstChild("TouchInterest") then
-                pcall(function()
-                    firetouchinterest(Char.HumanoidRootPart, v.Parent, 0)
-                    firetouchinterest(Char.HumanoidRootPart, v.Parent, 1)
-                end)
-            end
-        end
-        wait(1)
-    end
-end)
+local function toggleFly()
+	flyEnabled = not flyEnabled
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if flyEnabled then
+		local bv = Instance.new("BodyVelocity")
+		bv.Name = "FlyVelocity"
+		bv.Velocity = Vector3.new(0, 0, 0)
+		bv.MaxForce = Vector3.new(0, math.huge, 0)
+		bv.Parent = hrp
+		game:GetService("RunService").Heartbeat:Connect(function()
+			if flyEnabled and bv and bv.Parent then
+				bv.Velocity = Vector3.new(0, 50, 0)
+			end
+		end)
+	else
+		if hrp:FindFirstChild("FlyVelocity") then hrp.FlyVelocity:Destroy() end
+	end
+end
 
 -- Kill Aura
-local aura = false
-makeButton("💀 Toggle Kill Aura", function()
-    aura = not aura
+local function toggleKillAura()
+	killAuraEnabled = not killAuraEnabled
+	if killAuraEnabled then
+		spawn(function()
+			while killAuraEnabled do
+				for _, v in pairs(game.Players:GetPlayers()) do
+					if v ~= player and v.Character and v.Character:FindFirstChild("Humanoid") then
+						local dist = (v.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+						if dist < 10 then
+							local hum = v.Character:FindFirstChild("Humanoid")
+							if hum then
+								hum:TakeDamage(50)
+							end
+						end
+					end
+				end
+				wait(0.5)
+			end
+		end)
+	end
+end
+
+-- TP to Player
+local function tpToClosest()
+	local closest, dist = nil, math.huge
+	for _, v in pairs(game.Players:GetPlayers()) do
+		if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+			local d = (v.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+			if d < dist then
+				closest, dist = v, d
+			end
+		end
+	end
+	if closest then char:SetPrimaryPartCFrame(closest.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)) end
+end
+
+-- Silent Aim
+local function toggleSilentAim()
+	silentAimEnabled = not silentAimEnabled
+	game:GetService("RunService").Heartbeat:Connect(function()
+		if silentAimEnabled then
+			local closest, dist = nil, math.huge
+			for _, v in pairs(game.Players:GetPlayers()) do
+				if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+					local screenPos, visible = camera:WorldToViewportPoint(v.Character.Head.Position)
+					local dx = screenPos.X - mouse.X
+					local dy = screenPos.Y - mouse.Y
+					local mag = math.sqrt(dx * dx + dy * dy)
+					if mag < dist then
+						closest, dist = v, mag
+					end
+				end
+			end
+			if closest and closest.Character and closest.Character:FindFirstChild("Head") then
+				mouse.TargetFilter = workspace
+				mouse.Hit = closest.Character.Head.CFrame
+			end
+		end
+	end)
+end
+
+-- Infinite Jump
+game:GetService("UserInputService").JumpRequest:Connect(function()
+	if infJumpEnabled then
+		char:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+	end
 end)
 
-RS.Heartbeat:Connect(function()
-    if aura then
-        for _, pl in pairs(game.Players:GetPlayers()) do
-            if pl ~= Plr and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = (pl.Character.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Magnitude
-                if dist <= 15 then
-                    local tool = Char:FindFirstChildOfClass("Tool")
-                    if tool then tool:Activate() end
-                end
-            end
-        end
-    end
-end)
+-- Noclip
+local function toggleNoclip()
+	noclipEnabled = not noclipEnabled
+	game:GetService("RunService").Stepped:Connect(function()
+		if noclipEnabled then
+			for _, part in pairs(char:GetDescendants()) do
+				if part:IsA("BasePart") and part.CanCollide then
+					part.CanCollide = false
+				end
+			end
+		end
+	end)
+end
 
-print("🔥 Loaded: NoFilter Dead Rails GUI with drag, toggle, and enough filth to crash your ethics.")
+-- Super Dash
+local function superDash()
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if hrp then
+		hrp.Velocity = hrp.CFrame.lookVector * 200
+	end
+end
+
+-- Item ESP
+local function toggleItemESP()
+	itemEspEnabled = not itemEspEnabled
+	for _, v in pairs(workspace:GetDescendants()) do
+		if v:IsA("Tool") and not v:FindFirstChild("ESP") then
+			if itemEspEnabled then
+				local tag = Instance.new("BillboardGui", v)
+				tag.Name = "ESP"
+				tag.Size = UDim2.new(0, 100, 0, 40)
+				tag.AlwaysOnTop = true
+				local label = Instance.new("TextLabel", tag)
+				label.Size = UDim2.new(1, 0, 1, 0)
+				label.BackgroundTransparency = 1
+				label.Text = v.Name
+				label.TextColor3 = Color3.new(0, 1, 0)
+				label.TextScaled = true
+			else
+				if v:FindFirstChild("ESP") then v.ESP:Destroy() end
+			end
+		end
+	end
+end
+
+-- Dead ESP
+local function deadESP()
+	for _, v in pairs(workspace:GetDescendants()) do
+		if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health <= 0 and not v:FindFirstChild("DeadTag") then
+			local tag = Instance.new("BillboardGui", v:FindFirstChild("HumanoidRootPart") or v:FindFirstChildWhichIsA("BasePart"))
+			tag.Name = "DeadTag"
+			tag.Size = UDim2.new(0, 100, 0, 40)
+			tag.AlwaysOnTop = true
+			local label = Instance.new("TextLabel", tag)
+			label.Size = UDim2.new(1, 0, 1, 0)
+			label.BackgroundTransparency = 1
+			label.Text = "💀 DEAD 💀"
+			label.TextColor3 = Color3.new(1, 0, 0)
+			label.TextScaled = true
+		end
+	end
+end
+
+-- Buttons
+createButton("ESP Toggle", 10, toggleESP)
+createButton("Speed Boost", 60, speedBoost)
+createButton("Jump Boost", 110, jumpBoost)
+createButton("Fly Toggle", 160, toggleFly)
+createButton("Kill Aura", 210, toggleKillAura)
+createButton("TP to Closest", 260, tpToClosest)
+createButton("Silent Aim", 310, toggleSilentAim)
+createButton("Infinite Jump", 360, function() infJumpEnabled = not infJumpEnabled end)
+createButton("Noclip", 410, toggleNoclip)
+createButton("Super Dash", 460, superDash)
+createButton("Item ESP", 510, toggleItemESP)
+createButton("Dead Locator", 560, deadESP)
