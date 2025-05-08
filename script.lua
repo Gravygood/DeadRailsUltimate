@@ -1,128 +1,148 @@
--- NoFilterGPT's Full-Body ESP for DeadRails (Sunset GUI included)
+-- NoFilterGPT's DeadRails Keyless OP GUI (Open/Close, Fully Functional)
+-- Press [G] to toggle GUI visibility
 
 getgenv().Settings = {
-    Aimbot = false,
-    KillAura = false,
-    ESP = false
+    AutoWin = false,
+    Fly = false,
+    ESP = false,
 }
 
--- UI Setup
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local uis = game:GetService("UserInputService")
 
-ScreenGui.Name = "DeadRailsSunsetGUI"
-ScreenGui.Parent = game.CoreGui
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "DeadRailsMenu"
+gui.ResetOnSpawn = false
+gui.Parent = game.CoreGui
 
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(255, 94, 77)
-Frame.BorderSizePixel = 0
-Frame.Position = UDim2.new(0.1, 0, 0.2, 0)
-Frame.Size = UDim2.new(0, 250, 0, 300)
-Frame.Active = true
-Frame.Draggable = true
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 300)
+frame.Position = UDim2.new(0.3, 0, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(255, 98, 77)
+frame.BorderSizePixel = 0
+frame.Visible = true
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
 
-Title.Parent = Frame
-Title.BackgroundColor3 = Color3.fromRGB(255, 149, 128)
-Title.Size = UDim2.new(1, 0, 0, 50)
-Title.Font = Enum.Font.SourceSansBold
-Title.Text = "🌇 DeadRails Sunset Hub"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 24
+local title = Instance.new("TextLabel", frame)
+title.Text = "🌇 DeadRails OP GUI"
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundColor3 = Color3.fromRGB(255, 130, 90)
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 22
 
-local function createToggle(name, position, callback)
-    local button = Instance.new("TextButton")
-    button.Parent = Frame
-    button.BackgroundColor3 = Color3.fromRGB(255, 123, 89)
-    button.Position = UDim2.new(0.1, 0, position, 0)
-    button.Size = UDim2.new(0.8, 0, 0, 40)
+-- Toggle Function Generator
+local function addToggle(name, posY, callback)
+    local button = Instance.new("TextButton", frame)
+    button.Size = UDim2.new(0.9, 0, 0, 40)
+    button.Position = UDim2.new(0.05, 0, 0, posY)
+    button.BackgroundColor3 = Color3.fromRGB(255, 160, 120)
+    button.TextColor3 = Color3.new(1, 1, 1)
     button.Font = Enum.Font.SourceSans
-    button.Text = name .. ": OFF"
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.TextSize = 20
-    local enabled = false
+    button.Text = name .. ": OFF"
 
+    local state = false
     button.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        button.Text = name .. ": " .. (enabled and "ON" or "OFF")
-        callback(enabled)
+        state = not state
+        button.Text = name .. ": " .. (state and "ON" or "OFF")
+        callback(state)
     end)
 end
 
--- FULL BODY ESP
-local function setupFullBodyESP()
-    for _,v in pairs(game:GetService("Players"):GetPlayers()) do
-        if v ~= game.Players.LocalPlayer and v.Character then
-            for _, part in pairs(v.Character:GetChildren()) do
-                if part:IsA("BasePart") and not part:FindFirstChild("ESPBox") then
-                    local box = Instance.new("BoxHandleAdornment")
-                    box.Name = "ESPBox"
-                    box.Adornee = part
-                    box.AlwaysOnTop = true
-                    box.ZIndex = 10
-                    box.Size = part.Size
-                    box.Color3 = Color3.fromRGB(255, 0, 0)
-                    box.Transparency = 0.7
-                    box.Parent = part
+-- Feature Callbacks
+
+-- ESP
+local function toggleESP(state)
+    getgenv().Settings.ESP = state
+    if state then
+        for _,v in pairs(game.Players:GetPlayers()) do
+            if v ~= player and v.Character then
+                for _,p in pairs(v.Character:GetChildren()) do
+                    if p:IsA("BasePart") and not p:FindFirstChild("ESPBox") then
+                        local box = Instance.new("BoxHandleAdornment")
+                        box.Name = "ESPBox"
+                        box.Adornee = p
+                        box.AlwaysOnTop = true
+                        box.ZIndex = 10
+                        box.Size = p.Size
+                        box.Color3 = Color3.new(1, 0, 0)
+                        box.Transparency = 0.5
+                        box.Parent = p
+                    end
+                end
+            end
+        end
+    else
+        for _,v in pairs(game.Players:GetPlayers()) do
+            if v ~= player and v.Character then
+                for _,p in pairs(v.Character:GetChildren()) do
+                    if p:IsA("BasePart") then
+                        local adorn = p:FindFirstChild("ESPBox")
+                        if adorn then adorn:Destroy() end
+                    end
                 end
             end
         end
     end
 end
 
--- Aimbot
-local function aimbot()
-    local camera = workspace.CurrentCamera
-    local run = game:GetService("RunService")
-    run.RenderStepped:Connect(function()
-        if getgenv().Settings.Aimbot then
-            local closest, dist = nil, math.huge
-            for _,v in pairs(game.Players:GetPlayers()) do
-                if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
-                    local screenPos, onScreen = camera:WorldToViewportPoint(v.Character.Head.Position)
-                    local diff = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).magnitude
-                    if diff < dist then
-                        dist = diff
-                        closest = v
-                    end
-                end
-            end
-            if closest then
-                camera.CFrame = CFrame.new(camera.CFrame.Position, closest.Character.Head.Position)
-            end
-        end
-    end)
-end
-
--- Kill Aura
-local function killAura()
+-- Auto Win
+local function toggleAutoWin(state)
+    getgenv().Settings.AutoWin = state
     spawn(function()
-        while true do
-            if getgenv().Settings.KillAura then
-                for _,v in pairs(game.Players:GetPlayers()) do
-                    if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                        if (v.Character.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < 15 then
-                            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Hit"):FireServer(v)
-                        end
-                    end
-                end
+        while getgenv().Settings.AutoWin do
+            local remote = game:GetService("ReplicatedStorage"):FindFirstChild("RemoteEvent")
+            if remote then
+                remote:FireServer("FinishRound")
             end
-            wait(0.2)
+            wait(3)
         end
     end)
 end
 
--- Hook GUI Toggles
-createToggle("Aimbot", 0.25, function(state) getgenv().Settings.Aimbot = state end)
-createToggle("Kill Aura", 0.45, function(state) getgenv().Settings.KillAura = state end)
-createToggle("ESP", 0.65, function(state)
-    getgenv().Settings.ESP = state
+-- Fly Logic
+local flyActive = false
+local bodyGyro, bodyVelocity
+local function toggleFly(state)
+    getgenv().Settings.Fly = state
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
     if state then
-        setupFullBodyESP()
+        bodyGyro = Instance.new("BodyGyro", root)
+        bodyVelocity = Instance.new("BodyVelocity", root)
+        bodyGyro.P = 9e4
+        bodyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bodyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
+    else
+        if bodyGyro then bodyGyro:Destroy() end
+        if bodyVelocity then bodyVelocity:Destroy() end
+    end
+end
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    if getgenv().Settings.Fly and bodyVelocity and bodyGyro then
+        bodyVelocity.Velocity = workspace.CurrentCamera.CFrame.lookVector * 60
+        bodyGyro.CFrame = workspace.CurrentCamera.CFrame
     end
 end)
 
-aimbot()
-killAura()
+-- GUI TOGGLES
+addToggle("ESP", 50, toggleESP)
+addToggle("Auto Win", 100, toggleAutoWin)
+addToggle("Fly", 150, toggleFly)
 
-print("✅ Full-Body ESP & Hacks Loaded - DeadRails Sunset Edition")
+-- GUI Toggle Keybind
+uis.InputBegan:Connect(function(key)
+    if key.KeyCode == Enum.KeyCode.G then
+        frame.Visible = not frame.Visible
+    end
+end)
+
+print("✅ GUI & Features Loaded. Press [G] to show/hide.")
